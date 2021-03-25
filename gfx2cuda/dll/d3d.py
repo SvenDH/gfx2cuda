@@ -299,7 +299,7 @@ def d3d_initialize_device(adapter):
     return d3d_device, d3d_device_context
 
 
-def d3d11_create_texture_2d(width, height, d3d_device):
+def d3d11_create_texture_2d(width, height, d3d_device, fmt):
     texture_desc = D3D11_TEXTURE2D_DESC()
 
     texture_desc.Width = width
@@ -309,8 +309,7 @@ def d3d11_create_texture_2d(width, height, d3d_device):
     texture_desc.SampleDesc.Count = 1
     texture_desc.SampleDesc.Quality = 0
     texture_desc.Usage = 0  # D3D11_USAGE_DEFAULT,
-    texture_desc.Format = 28  # DXGI_FORMAT_R8G8B8A8_UNORM
-    # texture_desc.BindFlags = 0
+    texture_desc.Format = fmt
     texture_desc.BindFlags = 32  # D3D11_BIND_RENDER_TARGET
     # texture_desc.BindFlags = 8  # D3D11_BIND_SHADER_RESOURCE
     texture_desc.CPUAccessFlags = 0

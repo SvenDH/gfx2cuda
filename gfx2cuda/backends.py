@@ -10,19 +10,26 @@ class BackendError(BaseException):
     pass
 
 
-class TexureFormat:
+class TexureFormat(enum.Enum):
     RGBA8UNORM = 0
     RGBA16FLOAT = 1
     RGBA32FLOAT = 2
 
-    @staticmethod
-    def get_pixel_size(fmt):
-        if fmt == TexureFormat.RGBA8UNORM:
+    def get_pixel_size(self):
+        if self == TexureFormat.RGBA8UNORM:
             return 4
-        elif fmt == TexureFormat.RGBA16FLOAT:
+        elif self == TexureFormat.RGBA16FLOAT:
             return 8
-        elif fmt == TexureFormat.RGBA32FLOAT:
+        elif self == TexureFormat.RGBA32FLOAT:
             return 16
+
+    def get_dxgi_format(self):
+        if self == TexureFormat.RGBA8UNORM:
+            return 28  # DXGI_FORMAT_R8G8B8A8_UNORM
+        elif self == TexureFormat.RGBA16FLOAT:
+            return 10  # DXGI_FORMAT_R16G16B16A16_FLOAT
+        elif self == TexureFormat.RGBA32FLOAT:
+            return 2  # DXGI_FORMAT_R32G32B32A32_FLOAT
 
 
 class Texture(metaclass=ABCMeta):
@@ -32,7 +39,7 @@ class Texture(metaclass=ABCMeta):
         self.device = device
         self.format = fmt
         # TODO: make this from format
-        self.nbytes = width * height * TexureFormat.get_pixel_size(fmt)
+        self.nbytes = width * height * fmt.get_pixel_size()
         self.ptr = None
 
     @abstractmethod
@@ -76,7 +83,7 @@ class Texture(metaclass=ABCMeta):
 class D3D11Texture(Texture):
     def __init__(self, width, height, device, fmt):
         super().__init__(width, height, device, fmt)
-        self.tex = gfx2cuda.dll.d3d.d3d11_create_texture_2d(width, height, device)
+        self.tex = gfx2cuda.dll.d3d.d3d11_create_texture_2d(width, height, device, fmt.get_dxgi_format())
         self.shared_handle = None
 
     def get_shared_handle(self):
