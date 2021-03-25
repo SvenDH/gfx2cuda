@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "gfx2cuda"
+version = "0.0.1"
+description = "Fast graphics texture "
+readme = "README.md"
+authors = ["Sven den Hartog <denhartog.sven@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/SvenDH/"
+keywords = ["Screen Capture", "Screenshot", "Computer Vision", "Windows"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Microsoft :: Windows :: Windows 8.1",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Multimedia :: Graphics :: Capture",
+]
+packages = [
+    {include = "gfx2cuda"},
+]
+include = []
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+comtypes = "~1.1.7"
+
+[tool.poetry.dev-dependencies]
+ipython = "~7.14"
+notebook = "~6.0"
+
+[tool.black]
+line-length = 99
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
