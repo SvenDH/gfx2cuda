@@ -1,5 +1,5 @@
 import collections
-from gfx2cuda.backends import Devices, Device
+from gfx2cuda.backends import Devices, Device, TexureFormat
 
 
 class Singleton(type):
@@ -30,7 +30,7 @@ class Gfx2Cuda(metaclass=Singleton):
     def _reset_devices(self):
         self.devices = []
 
-    def create_texture(self, width, height):
+    def create_texture(self, width, height, fmt=TexureFormat.RGBA8UNORM):
         if self.device is not None:
-            return self.device.create_texture(width, height)
+            return self.device.create_texture(width, height, fmt)
         return None

@@ -38,7 +38,6 @@ class Texture(metaclass=ABCMeta):
         self.height = height
         self.device = device
         self.format = fmt
-        # TODO: make this from format
         self.nbytes = width * height * fmt.get_pixel_size()
         self.ptr = None
 

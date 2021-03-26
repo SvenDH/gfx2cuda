@@ -1,4 +1,4 @@
-from gfx2cuda.gfx2cuda import Gfx2Cuda
+from gfx2cuda.gfx2cuda import Gfx2Cuda, TexureFormat
 
 
 def create(buffer_size=60):
