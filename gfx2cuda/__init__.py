@@ -1,7 +1,12 @@
-from gfx2cuda.gfx2cuda import Gfx2Cuda, TexureFormat
+from gfx2cuda.gfx2cuda import *
+
+instance = None
 
 
-def create(buffer_size=60):
-    if not isinstance(buffer_size, int) or buffer_size < 1:
-        raise AttributeError(f"'buffer_size' should be an int greater than 0")
-    return Gfx2Cuda(buffer_size=buffer_size)
+def texture(width, height, fmt=TexureFormat.RGBA8UNORM, backend=None):
+    global instance
+    if instance is None:
+        instance = Gfx2Cuda(backend=backend or Backends.D3D11)
+
+    tex = instance.create_texture(width, height, fmt)
+    return tex

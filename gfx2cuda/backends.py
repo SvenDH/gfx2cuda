@@ -1,6 +1,7 @@
 import enum
 from abc import ABCMeta, abstractmethod
 
+import gfx2cuda
 import gfx2cuda.dll.dxgi
 import gfx2cuda.dll.d3d
 import gfx2cuda.dll.cuda
@@ -32,17 +33,28 @@ class TexureFormat(enum.Enum):
             return 2  # DXGI_FORMAT_R32G32B32A32_FLOAT
 
 
-class Texture(metaclass=ABCMeta):
-    def __init__(self, width, height, device, fmt):
+class Texture:
+    def __init__(self, width, height, fmt, device):
         self.width = width
         self.height = height
         self.device = device
         self.format = fmt
         self.nbytes = width * height * fmt.get_pixel_size()
         self.ptr = None
+        self._shared_handle = None
+
+    @classmethod
+    def from_handle(cls, handle):
+        return gfx2cuda.Gfx2Cuda().lookup_shared_handle(handle)
+
+    @property
+    def shared_handle(self):
+        if self._shared_handle is None:
+            self._shared_handle = self.create_shared_handle()
+        return self._shared_handle
 
     @abstractmethod
-    def get_shared_handle(self):
+    def create_shared_handle(self):
         pass
 
     @abstractmethod
@@ -80,33 +92,32 @@ class Texture(metaclass=ABCMeta):
 
 
 class D3D11Texture(Texture):
-    def __init__(self, width, height, device, fmt):
-        super().__init__(width, height, device, fmt)
-        self.tex = gfx2cuda.dll.d3d.d3d11_create_texture_2d(width, height, device, fmt.get_dxgi_format())
-        self.shared_handle = None
+    def __init__(self, width, height, fmt, device):
+        super().__init__(width, height, fmt, device)
+        dxgi_fmt = fmt.get_dxgi_format()
+        self.tex = gfx2cuda.dll.d3d.d3d11_create_texture_2d(width, height, device.handle, dxgi_fmt)
 
-    def get_shared_handle(self):
-        if self.shared_handle is None:
-            dxgi_ptr = gfx2cuda.dll.dxgi.get_dxgi_resource(self.tex)
-            self.shared_handle = gfx2cuda.dll.dxgi.get_shared_handle(dxgi_ptr)
-        return self.shared_handle
+    def create_shared_handle(self):
+        dxgi_ptr = gfx2cuda.dll.dxgi.get_dxgi_resource(self.tex)
+        handle = gfx2cuda.dll.dxgi.get_shared_handle(dxgi_ptr)
+        return handle.value
 
     def register(self):
         self.ptr = gfx2cuda.dll.cuda.cuda_register_d3d_resource(self.tex)
 
 
 class OpenGLTexture(Texture):
-    def __init__(self, width, height, device, fmt):
-        super().__init__(width, height, device, fmt)
+    def __init__(self, width, height, fmt, device):
+        super().__init__(width, height, fmt, device)
 
-    def get_shared_handle(self):
+    def create_shared_handle(self):
         raise NotImplementedError
 
     def register(self):
         raise NotImplementedError
 
 
-class Devices(enum.Enum):
+class Backends(enum.Enum):
     D3D11 = 0
     OPENGL = 1
 
@@ -116,14 +127,14 @@ class Device(metaclass=ABCMeta):
         self.name = name or "Unknown Adapter"
         self.backend = backend
         self.adapter = adapter
-        self.device = None
+        self.handle = None
         self.dev = -1
 
-    def create_texture(self, width, height, fmt=TexureFormat.RGBA8UNORM):
-        if self.backend == Devices.D3D11:
-            tex = D3D11Texture(width, height, self.device, fmt)
-        elif self.backend == Devices.OPENGL:
-            tex = OpenGLTexture(width, height, self.device, fmt)
+    def create_texture(self, width, height, fmt):
+        if self.backend == Backends.D3D11:
+            tex = D3D11Texture(width, height, fmt, self)
+        elif self.backend == Backends.OPENGL:
+            tex = OpenGLTexture(width, height, fmt, self)
         else:
             raise BackendError("The specified backend is invalid!")
         tex.register()
@@ -134,10 +145,10 @@ class Device(metaclass=ABCMeta):
         pass
 
     @classmethod
-    def discover_devices(cls, backend=Devices.D3D11):
-        if backend == Devices.D3D11:
+    def discover_devices(cls, backend):
+        if backend == Backends.D3D11:
             return D3D11Device.discover_devices()
-        elif backend == Devices.OPENGL:
+        elif backend == Backends.OPENGL:
             return OpenGLDevice.discover_devices()
         else:
             raise BackendError("The specified backend is invalid!")
@@ -146,7 +157,7 @@ class Device(metaclass=ABCMeta):
 class D3D11Device(Device):
     def __init__(self, name=None, adapter=None, backend=None):
         super().__init__(name, adapter, backend)
-        self.device, self.context = gfx2cuda.dll.d3d.d3d_initialize_device(adapter)
+        self.handle, self.context = gfx2cuda.dll.d3d.d3d_initialize_device(adapter)
 
     def init_context(self):
         self.dev = gfx2cuda.dll.cuda.cuda_device_d3d_adapter(self.adapter)
@@ -159,7 +170,7 @@ class D3D11Device(Device):
         devices = []
         for dxgi_adapter in dxgi_adapters:
             dxgi_adapter_desc = gfx2cuda.dll.dxgi.dxgi_adapter_description(dxgi_adapter)
-            devices += [cls(name=dxgi_adapter_desc, adapter=dxgi_adapter, backend=Devices.D3D11)]
+            devices += [cls(name=dxgi_adapter_desc, adapter=dxgi_adapter, backend=Backends.D3D11)]
 
         return devices
 
