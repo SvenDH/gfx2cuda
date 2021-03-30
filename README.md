@@ -3,6 +3,8 @@
 _Gfx2Cuda_ is a python implementation of cuda's graphics interopability methods for DirectX, OpenGL, etc.
 The main usage is for quick transfer of images rendered with for example Godot or Unity to Cuda memory buffers such as pytoch tensors, without needing to transfer the image to cpu and back to gpu.
 
+For now only DirectX 11 is supported. 
+
 ### Example
 
 **Render to texture and copy to pytorch tensor**
@@ -13,8 +15,7 @@ import pytorch
 
 tensor = torch.zeros([480, 640, 4], device=0).byte().contiguous()
 
-instance = gfx2cuda.create()
-tex = instance.create_texture(640, 480)
+tex = gfx2cuda.texture(640, 480)
 
 # Now render to the texture
 

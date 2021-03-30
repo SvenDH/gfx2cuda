@@ -2,13 +2,10 @@ import enum
 from abc import ABCMeta, abstractmethod
 
 import gfx2cuda
+from gfx2cuda import Gfx2CudaError
 import gfx2cuda.dll.dxgi
 import gfx2cuda.dll.d3d
 import gfx2cuda.dll.cuda
-
-
-class BackendError(BaseException):
-    pass
 
 
 class TexureFormat(enum.Enum):
@@ -136,7 +133,7 @@ class Device(metaclass=ABCMeta):
         elif self.backend == Backends.OPENGL:
             tex = OpenGLTexture(width, height, fmt, self)
         else:
-            raise BackendError("The specified backend is invalid!")
+            raise Gfx2CudaError("The specified backend is invalid!")
         tex.register()
         return tex
 
@@ -151,7 +148,7 @@ class Device(metaclass=ABCMeta):
         elif backend == Backends.OPENGL:
             return OpenGLDevice.discover_devices()
         else:
-            raise BackendError("The specified backend is invalid!")
+            raise Gfx2CudaError("The specified backend is invalid!")
 
 
 class D3D11Device(Device):

@@ -3,7 +3,12 @@ from ctypes import *
 import glob
 
 CUDA_PATH = os.getenv('CUDA_PATH')
-cu_path = glob.glob(CUDA_PATH + '/bin/cudart64_*')[0]
+if sizeof(c_void_p) == 8:
+    _cu_re = '/bin/cudart64_*'
+else:  # == 4
+    _cu_re = '/bin/cudart32_*'
+
+cu_path = glob.glob(CUDA_PATH + _cu_re)[0]
 cu = cdll.LoadLibrary(cu_path)
 
 

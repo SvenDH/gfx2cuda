@@ -1,6 +1,10 @@
 from gfx2cuda.backends import Backends, Device, TexureFormat, Texture
 
 
+class Gfx2CudaError(BaseException):
+    pass
+
+
 class Singleton(type):
     _instances = {}
 
@@ -20,6 +24,9 @@ class Gfx2Cuda(metaclass=Singleton):
         self.device = self.devices[0] if len(self.devices) > 0 else None
         self.device.init_context()
         self.shared_handle_map = dict()
+
+    def get_backend(self):
+        return self.backend
 
     def detect_devices(self):
         self._reset_devices()
