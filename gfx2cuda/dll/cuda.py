@@ -39,6 +39,11 @@ def cuda_memcpy2d_atod(dst, src, width_in_bytes, height):
     assert ret == 0, ret
 
 
+def cuda_memcpy2d_dtoa(dst, src, width_in_bytes, height):
+    ret = cu.cudaMemcpy2DToArray(c_void_p(dst), 0, 0, c_void_p(src), width_in_bytes, width_in_bytes, height, 3)
+    assert ret == 0, ret
+
+
 def cuda_get_mapped_array(resource):
     array = c_void_p()
     ret = cu.cudaGraphicsSubResourceGetMappedArray(byref(array), resource, 0, 0)

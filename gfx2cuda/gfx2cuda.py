@@ -1,8 +1,5 @@
-from gfx2cuda.backends import Backends, Device, TexureFormat, Texture
-
-
-class Gfx2CudaError(BaseException):
-    pass
+from gfx2cuda.backends import Backends, Device
+from gfx2cuda.exception import Gfx2CudaError
 
 
 class Singleton(type):
@@ -23,7 +20,7 @@ class Gfx2Cuda(metaclass=Singleton):
         self.detect_devices()
         self.device = self.devices[0] if len(self.devices) > 0 else None
         self.device.init_context()
-        self.shared_handle_map = dict()
+        self._ipc_handle_map = dict()
 
     def get_backend(self):
         return self.backend
@@ -35,14 +32,26 @@ class Gfx2Cuda(metaclass=Singleton):
     def _reset_devices(self):
         self.devices = []
 
-    def create_texture(self, width, height, fmt):
-        if self.device is not None:
-            tex = self.device.create_texture(width, height, fmt)
-            self.shared_handle_map[tex.shared_handle] = tex
-            return tex
-        return None
+    def create_texture(self, width, height, format, device=None):
+        if device >= len(self.devices):
+            raise Gfx2CudaError("Out of bound CUDA device")
+        if self.device is not None and device is None:
+            tex = self.device.create_texture(width, height, format)
+        else:
+            if self.devices[device].has_cuda():
+                assert device == self.devices[device].dev
+                tex = self.devices[device].create_texture(width, height, format)
+            else:
+                raise Gfx2CudaError("Device has no CUDA capabilities.")
+        self._ipc_handle_map[tex.ipc_handle] = tex
+        return tex
 
     def lookup_shared_handle(self, handle):
-        if handle in self.shared_handle_map:
-            return self.shared_handle_map[handle]
+        if handle in self._ipc_handle_map:
+            return self._ipc_handle_map[handle]
         return None
+
+    def open_ipc_handle(self, handle):
+        tex = self.device.open_ipc_handle(handle)
+        self._ipc_handle_map[handle] = tex
+        return tex

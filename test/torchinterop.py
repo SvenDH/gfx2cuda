@@ -1,16 +1,22 @@
 import gfx2cuda
 import torch
+import numpy as np
 
 if __name__ == "__main__":
-    tensor = torch.zeros([480, 640, 4], device=0).byte().contiguous()
+    shape = [2, 2, 4]
+    tensor1 = torch.ones(shape).byte().contiguous().cuda()
+    tensor2 = torch.zeros(shape).byte().contiguous().cuda()
 
-    tex = gfx2cuda.texture(640, 480)
+    #tex = gfx2cuda.texture(tensor1.shape, dtype=tensor1.dtype)
+
+    #with tex as ptr:
+    #    tex.copy_from(tensor1.data_ptr())
+
+    tex = gfx2cuda.texture(tensor1)
 
     with tex as ptr:
-        tex.copy_to(tensor.data_ptr())
+        tex.copy_to(tensor2.data_ptr())
 
-    print(tensor.data)
+    print(tensor2.data)
 
-    print(tex.shared_handle)
-
-    print(gfx2cuda.Texture.from_handle(tex.shared_handle))
+    assert np.array_equal(tensor2.cpu().numpy(), tensor1.cpu().numpy())

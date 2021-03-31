@@ -257,7 +257,11 @@ class ID3D11Device(comtypes.IUnknown):
         comtypes.STDMETHOD(comtypes.HRESULT, "CreatePredicate"),
         comtypes.STDMETHOD(comtypes.HRESULT, "CreateCounter"),
         comtypes.STDMETHOD(comtypes.HRESULT, "CreateDeferredContext"),
-        comtypes.STDMETHOD(comtypes.HRESULT, "OpenSharedResource"),
+        comtypes.STDMETHOD(comtypes.HRESULT, "OpenSharedResource", [
+            wintypes.HANDLE,
+            ctypes.POINTER(comtypes.GUID),
+            ctypes.POINTER(ctypes.c_void_p),
+        ]),
         comtypes.STDMETHOD(comtypes.HRESULT, "CheckFormatSupport"),
         comtypes.STDMETHOD(comtypes.HRESULT, "CheckMultisampleQualityLevels"),
         comtypes.STDMETHOD(comtypes.HRESULT, "CheckCounterInfo"),
@@ -295,11 +299,14 @@ def d3d_initialize_device(adapter):
         None,
         ctypes.byref(d3d_device_context),
     )
-
     return d3d_device, d3d_device_context
 
 
-def d3d11_create_texture_2d(width, height, d3d_device, fmt):
+def d3d11_flush(d3d_device_context):
+    d3d_device_context.Flush()
+
+
+def d3d11_create_texture_2d(width, height, d3d_device, fmt, cpu_access):
     texture_desc = D3D11_TEXTURE2D_DESC()
 
     texture_desc.Width = width
@@ -310,11 +317,12 @@ def d3d11_create_texture_2d(width, height, d3d_device, fmt):
     texture_desc.SampleDesc.Quality = 0
     texture_desc.Usage = 0  # D3D11_USAGE_DEFAULT,
     texture_desc.Format = fmt
-    texture_desc.BindFlags = 32  # D3D11_BIND_RENDER_TARGET
+    # texture_desc.BindFlags = 32  # D3D11_BIND_RENDER_TARGET
     # texture_desc.BindFlags = 8  # D3D11_BIND_SHADER_RESOURCE
-    texture_desc.CPUAccessFlags = 0
+    texture_desc.BindFlags = 32 | 8  # D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE
+    if cpu_access:
+        texture_desc.CPUAccessFlags = 65536 | 131072  # D3D11_CPU_ACCESS_WRITE|D3D11_CPU_ACCESS_READ
     # texture_desc.CPUAccessFlags = 131072  # D3D11_CPU_ACCESS_READ
-    # texture_desc.CPUAccessFlags = 65536 | 131072  # D3D11_CPU_ACCESS_WRITE|D3D11_CPU_ACCESS_READ
     # texture_desc.MiscFlags = 2048  # D3D11_RESOURCE_MISC_SHARED_NTHANDLE
     # texture_desc.MiscFlags = 256  # D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX
     texture_desc.MiscFlags = 2  # D3D11_RESOURCE_MISC_SHARED
@@ -323,6 +331,19 @@ def d3d11_create_texture_2d(width, height, d3d_device, fmt):
     d3d11_texture = ctypes.POINTER(ID3D11Texture2D)()
     d3d_device.CreateTexture2D(ctypes.byref(texture_desc), None, ctypes.byref(d3d11_texture))
     return d3d11_texture
+
+
+def d3d11_texture_desc(d3d11_texture):
+    d3d11_texture_description = D3D11_TEXTURE2D_DESC()
+    d3d11_texture.GetDesc(ctypes.byref(d3d11_texture_description))
+
+    return d3d11_texture_description.Width, d3d11_texture_description.Height, d3d11_texture_description.Format
+
+
+def d3d11_open_shared_handle(handle, d3d_device):
+    resource = ctypes.POINTER(ID3D11Texture2D)()
+    d3d_device.OpenSharedResource(handle, ID3D11Texture2D._iid_, ctypes.byref(resource))
+    return resource
 
 
 def d3d11_create_render_target_view(d3d11_texture, d3d_device):
