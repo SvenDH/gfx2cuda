@@ -265,6 +265,10 @@ def get_dxgi_resource(d3d_resource):
     return d3d_resource.QueryInterface(IDXGIResource)
 
 
+def dxgi_resource_release(dxgi_resource):
+    dxgi_resource.Release()
+
+
 def get_shared_handle(dxgi_resource):
     handle = wintypes.HANDLE()
     dxgi_resource.GetSharedHandle(ctypes.byref(handle))

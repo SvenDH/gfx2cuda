@@ -73,7 +73,7 @@ def texture(*args, **kwargs):
 
 def open_ipc_texture(handle, **kwargs):
     _lazy_init(**kwargs)
-    tex = _instance.lookup_shared_handle(handle)
+    tex = _instance.lookup_ipc_handle(handle)
     if tex is None:
         tex = _instance.open_ipc_handle(handle)
     return tex

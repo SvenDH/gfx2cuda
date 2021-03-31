@@ -317,16 +317,15 @@ def d3d11_create_texture_2d(width, height, d3d_device, fmt, cpu_access):
     texture_desc.SampleDesc.Quality = 0
     texture_desc.Usage = 0  # D3D11_USAGE_DEFAULT,
     texture_desc.Format = fmt
-    # texture_desc.BindFlags = 32  # D3D11_BIND_RENDER_TARGET
+    texture_desc.BindFlags = 32  # D3D11_BIND_RENDER_TARGET
     # texture_desc.BindFlags = 8  # D3D11_BIND_SHADER_RESOURCE
-    texture_desc.BindFlags = 32 | 8  # D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE
+    # texture_desc.BindFlags = 32 | 8  # D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE
     if cpu_access:
         texture_desc.CPUAccessFlags = 65536 | 131072  # D3D11_CPU_ACCESS_WRITE|D3D11_CPU_ACCESS_READ
     # texture_desc.CPUAccessFlags = 131072  # D3D11_CPU_ACCESS_READ
     # texture_desc.MiscFlags = 2048  # D3D11_RESOURCE_MISC_SHARED_NTHANDLE
     # texture_desc.MiscFlags = 256  # D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX
     texture_desc.MiscFlags = 2  # D3D11_RESOURCE_MISC_SHARED
-    # texture_desc.MiscFlags = 0
 
     d3d11_texture = ctypes.POINTER(ID3D11Texture2D)()
     d3d_device.CreateTexture2D(ctypes.byref(texture_desc), None, ctypes.byref(d3d11_texture))

@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 
 import gfx2cuda
 import numpy as np
@@ -25,16 +25,11 @@ def f(handle):
 
     print(tensor2.data)
 
-    torch.cuda.synchronize()
-    gfx2cuda.synchronize()
-
 
 if __name__ == "__main__":
     tensor = torch.zeros(shape).byte().contiguous().cuda()
 
     tex = gfx2cuda.texture(tensor)
-
-    gfx2cuda.synchronize()
 
     p = Process(target=f, args=(tex.ipc_handle,))
 
@@ -45,3 +40,5 @@ if __name__ == "__main__":
         tex.copy_to(tensor.data_ptr())
 
     print(tensor.data)
+
+    assert np.array_equal(tensor.cpu().numpy(), np.ones(shape, dtype=np.uint8))

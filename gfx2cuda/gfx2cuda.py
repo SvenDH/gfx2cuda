@@ -46,7 +46,7 @@ class Gfx2Cuda(metaclass=Singleton):
         self._ipc_handle_map[tex.ipc_handle] = tex
         return tex
 
-    def lookup_shared_handle(self, handle):
+    def lookup_ipc_handle(self, handle):
         if handle in self._ipc_handle_map:
             return self._ipc_handle_map[handle]
         return None

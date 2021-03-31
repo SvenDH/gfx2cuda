@@ -17,12 +17,9 @@ class Texture:
         self.format = format
         self.cpu_access = cpu_access
         self.nbytes = width * height * format.get_pixel_size()
-        if ptr is None:
-            self._ptr = None
-        else:
-            self._ptr = ptr
+        self._ptr = None
         self._ipc_handle = None
-        self._tex = None
+        self._tex = ptr
 
     @property
     def ipc_handle(self):
@@ -93,6 +90,7 @@ class D3D11Texture(Texture):
     def create_ipc_handle(self):
         dxgi_ptr = gfx2cuda.dll.dxgi.get_dxgi_resource(self._tex)
         handle = gfx2cuda.dll.dxgi.get_shared_handle(dxgi_ptr)
+        gfx2cuda.dll.dxgi.dxgi_resource_release(dxgi_ptr)
         return handle.value
 
     def register(self):
