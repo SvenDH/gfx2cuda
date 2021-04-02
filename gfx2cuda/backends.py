@@ -6,7 +6,7 @@ import gfx2cuda.dll.dxgi
 import gfx2cuda.dll.d3d
 import gfx2cuda.dll.cuda
 from gfx2cuda.format import TextureFormat
-from gfx2cuda.exception import Gfx2CudaError
+from gfx2cuda.exception import Gfx2CudaError, Gfx2CudaUnsupoortedError
 
 
 class Texture:
@@ -63,12 +63,24 @@ class Texture:
         return gfx2cuda.dll.cuda.cuda_get_mapped_array(self._ptr)
 
     def copy_to(self, dst):
+        if isinstance(dst, int):
+            ptr = dst
+        elif hasattr(dst, '__cuda_array_interface__'):
+            ptr = dst.__cuda_array_interface__['data'][0]
+        else:
+            raise ValueError("type of dst not understood as CUDA pointer")
         wbytes = self.nbytes // self.height
-        gfx2cuda.dll.cuda.cuda_memcpy2d_atod(dst, self.data_ptr(), wbytes, self.height)
+        gfx2cuda.dll.cuda.cuda_memcpy2d_atod(ptr, self.data_ptr(), wbytes, self.height)
 
     def copy_from(self, src):
+        if isinstance(src, int):
+            ptr = src
+        elif hasattr(src, '__cuda_array_interface__'):
+            ptr = src.__cuda_array_interface__['data'][0]
+        else:
+            raise ValueError("type of dst not understood as CUDA pointer")
         wbytes = self.nbytes // self.height
-        gfx2cuda.dll.cuda.cuda_memcpy2d_dtoa(self.data_ptr(), src, wbytes, self.height)
+        gfx2cuda.dll.cuda.cuda_memcpy2d_dtoa(self.data_ptr(), ptr, wbytes, self.height)
 
     def __del__(self):
         self.unregister()

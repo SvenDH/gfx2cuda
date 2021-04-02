@@ -1,20 +1,17 @@
 [tool.poetry]
 name = "gfx2cuda"
-version = "0.0.1"
-description = "Fast graphics texture "
+version = "0.0.2"
+description = "Fast graphics texture to cuda transfer"
 readme = "README.md"
 authors = ["Sven den Hartog <denhartog.sven@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/SvenDH/"
-keywords = ["Screen Capture", "Screenshot", "Computer Vision", "Windows"]
+keywords = ["Screen Capture", "Screenshot", "Computer Vision"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: Microsoft :: Windows :: Windows 8.1",
-    "Operating System :: Microsoft :: Windows :: Windows 10",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.8",
     "Topic :: Multimedia :: Graphics",

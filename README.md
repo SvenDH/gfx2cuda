@@ -26,7 +26,7 @@ tensor2 = torch.zeros(shape).contiguous().cuda()
 tex = gfx2cuda.texture(tensor1)
 
 with tex as ptr:
-    tex.copy_to(tensor2.data_ptr())
+    tex.copy_to(tensor2)
 
 print(tensor2.data)
 # pytorch tensor should now contain a copy of the texture data
@@ -49,14 +49,7 @@ def f(handle):
     # >> Texture with format TextureFormat.RGBA32FLOAT (4 x 4)
     tensor1 = torch.ones(shape).contiguous().cuda()
     with tex:
-        tex.copy_from(tensor1.data_ptr())
-
-    tensor2 = torch.zeros(shape).contiguous().cuda()
-    with tex:
-        tex.copy_to(tensor2.data_ptr())
-
-    print(tensor2.data)
-    # See all ones
+        tex.copy_from(tensor1)
 
 if __name__ == "__main__":
     tensor = torch.zeros(shape).contiguous().cuda()
@@ -68,7 +61,7 @@ if __name__ == "__main__":
     p.join()
 
     with tex:
-        tex.copy_to(tensor.data_ptr())
+        tex.copy_to(tensor)
 
     print(tensor.data)
     # See all ones

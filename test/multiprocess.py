@@ -16,12 +16,12 @@ def f(handle):
     tensor1 = torch.ones(shape).contiguous().cuda()
 
     with tex as ptr:
-        tex.copy_from(tensor1.data_ptr())
+        tex.copy_from(tensor1)
 
     tensor2 = torch.zeros(shape).contiguous().cuda()
 
     with tex as ptr:
-        tex.copy_to(tensor2.data_ptr())
+        tex.copy_to(tensor2)
 
     print(tensor2.data)
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     p.join()
 
     with tex as ptr:
-        tex.copy_to(tensor.data_ptr())
+        tex.copy_to(tensor)
 
     print(tensor.data)
 

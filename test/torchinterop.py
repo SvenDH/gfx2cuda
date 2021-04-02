@@ -15,7 +15,7 @@ if __name__ == "__main__":
     tex = gfx2cuda.texture(tensor1)
 
     with tex as ptr:
-        tex.copy_to(tensor2.data_ptr())
+        tex.copy_to(tensor2)
 
     print(tensor2.data)
 

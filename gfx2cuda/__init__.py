@@ -1,3 +1,6 @@
+
+__version__ = "0.0.2.dev0"
+
 import sys
 
 from gfx2cuda.gfx2cuda import *
